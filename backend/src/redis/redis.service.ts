@@ -1,22 +1,27 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {  Redis } from 'ioredis'
 
 
 @Injectable()
 export class RedisService {
+    constructor(private config: ConfigService){}
     private redisClient: Redis;
-
+    
     onModuleInit() {
         this.redisClient = new Redis({
-            host: process.env.REDIS_HOST,
-            port: Number(process.env.REDIS_PORT),
+            host: this.config.get<string>('redis.host'),
+            port: this.config.get<number>('redis.port'),
             maxRetriesPerRequest: null,
             enableReadyCheck: true,
             lazyConnect: false,
         });
 
         this.redisClient.on('connect', () => {
-            console.log('Connected to Redis');
+            console.log('Connected to Redis',
+                this.config.get<string>('redis.host'),
+                this.config.get<number>('redis.port'),
+            );
         });
 
         this.redisClient.on('ready', () => {
@@ -56,6 +61,11 @@ export class RedisService {
         return this.redisClient.get(key);
     }
 
+
+    async keys(pattern:string){
+        return this.redisClient.keys(pattern);
+    }
+
     async del(key:string){
         return this.redisClient.del(key);
     }
@@ -66,6 +76,30 @@ export class RedisService {
 
     async expire(key:string, ttl:number){
         return this.redisClient.expire(key, ttl);
+    }
+
+    async incr(key:string){
+        return this.redisClient.incr(key);
+    }
+
+    async decr(key:string){
+        return this.redisClient.decr(key);
+    }
+
+    async ttl(key:string){
+        return this.redisClient.ttl(key);
+    }
+
+    async sadd(key:string, member:string){
+        return this.redisClient.sadd(key, member);
+    }
+
+    async smembers(key:string){
+        return this.redisClient.smembers(key);
+    }
+
+    async srem(key:string, member:string){
+        return this.redisClient.srem(key, member);
     }
 
 

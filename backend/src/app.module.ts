@@ -4,16 +4,26 @@ import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { RedisModule } from './redis/redis.module.js';
 import { ConfigModule } from '@nestjs/config';
-import { TestModule } from './test/test.module.js';
+import { envValidationSchema } from './config/env.validation.js';
+import { AuthModule } from './auth/auth.module.js';
+import appConfig from './config/app.config.js';
+import { JwtGuard } from './auth/guards/jwt/jwt.guard.js';
+import { RolesGuard } from './auth/guards/roles/roles.guard.js';
+import { APP_GUARD } from '@nestjs/core';
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env'
-    }), PrismaModule, RedisModule, TestModule],
+      envFilePath: '.env',
+      validationSchema: envValidationSchema,
+      load:[appConfig]
+    }), PrismaModule, RedisModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {provide: APP_GUARD, useClass: JwtGuard},
+    {provide: APP_GUARD, useClass: RolesGuard}
+  ],
 })
 export class AppModule {}

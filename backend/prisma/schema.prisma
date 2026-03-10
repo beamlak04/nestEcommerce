@@ -13,8 +13,63 @@ datasource db {
   provider = "postgresql"
 }
 
-model Test{
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
+enum Role{
+  CUSTOMER
+  ADMIN
+}
+
+enum OtpType{
+  REGISTER
+  RESET_PASSWORD
+}
+
+model User{
+  id          String   @id @default(uuid())
+  phone       String   @unique
+  password    String
+  name        String
+  role        Role      @default(CUSTOMER)
+  isVerified  Boolean   @default(false)
+
+  sessions    Session[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([role])
+  @@index([isVerified])
+
+}
+
+model Session{
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  refreshToken    String    @unique
+  device          String
+  ipAddress       String
+  expiresAt       DateTime
+
+  createdAt       DateTime  @default(now())
+
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Otp{
+  id          String    @id @default(uuid())
+  phone       String
+  code        String
+  type        OtpType
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+  @@index([phone, type])
+  @@index([phone, code, type])
 }
