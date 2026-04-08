@@ -62,7 +62,7 @@ export class SessionsService {
         await this.redisService.del(`sess:${sessionId}`);
     }
 
-    async createSesion(userId: string, sessionId: string, refreshToken: string, ttl: number, metadata: {device: string, ip: string, userAgent: string}){
+    async createSession(userId: string, sessionId: string, refreshToken: string, ttl: number, metadata: {device: string, ip: string, userAgent: string}){
         //ttl = 7d
         const data = {
             userId,

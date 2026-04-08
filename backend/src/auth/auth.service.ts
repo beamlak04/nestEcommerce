@@ -78,9 +78,8 @@ export class AuthService {
         const refreshToken = await this.sessionService.generateRefreshToken(user.id, sessionId);
         const accessToken = await this.sessionService.generateAccessToken(user.id, user.role, sessionId);
 
-        await this.sessionService.createSesion(user.id, sessionId, refreshToken, this.config.getOrThrow<number>('jwt.refreshTtl'), {device: device, ip: ip, userAgent: userAgent}); // 7 days
-        
-        
+        await this.sessionService.createSession(user.id, sessionId, refreshToken, this.config.getOrThrow<number>('jwt.refreshTtl'), {device: device, ip: ip, userAgent: userAgent}); // 7 days
+       
         //console.log(`login: userId=${user.id}, sessionId=${sessionId}, device=${device}, ip=${ip}, userAgent=${userAgent}`);
         return { accessToken, refreshToken };
     }

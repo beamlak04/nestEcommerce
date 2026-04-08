@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+
 
 
 async function bootstrap() {
@@ -12,7 +14,18 @@ async function bootstrap() {
   expressApp.set('trust proxy', true);
 
   app.use(cookieParser());
-  
+  app.use(helmet({
+    contentSecurityPolicy:{
+        directives:{
+            defaultSrc: ["'self'"],
+        }
+    }
+  }));
+  app.enableCors({
+    origin: config.get<string>('app.clientUrl'),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  })
  // await app.listen(process.env.PORT ?? 3000);
  await app.listen(config.get<number>('app.port') || 3000);
 }

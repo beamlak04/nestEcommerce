@@ -4,6 +4,7 @@ export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production').required(),
 
   PORT: Joi.number().default(3000),
+  CLIENT_URL: Joi.string().uri().required(),
 
   DATABASE_URL: Joi.string().required(),
 
@@ -12,6 +13,7 @@ export const envValidationSchema = Joi.object({
 
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),
+  CSRF_SECRET: Joi.string().required(),
 
   JWT_ACCESS_TTL: Joi.string().required(),
   JWT_REFRESH_TTL: Joi.string().required(),

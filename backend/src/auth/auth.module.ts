@@ -7,11 +7,12 @@ import { SmsService } from './sms/sms.service.js';
 import { RateLimitService } from './rate-limit/rate-limit.service.js';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsController } from './sessions/sessions.controller.js';
+import { CsrfService } from './csrf/csrf.service.js';
 
 @Module({
   imports: [JwtModule.register({})],
-  providers: [AuthService, OtpService, SessionsService, SmsService, RateLimitService],
+  providers: [AuthService, OtpService, SessionsService, SmsService, RateLimitService, CsrfService],
   controllers: [AuthController, SessionsController],
-  exports: [AuthService, SessionsService]
+  exports: [AuthService, SessionsService, CsrfService]
 })
 export class AuthModule {}

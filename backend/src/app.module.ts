@@ -10,6 +10,7 @@ import appConfig from './config/app.config.js';
 import { JwtGuard } from './auth/guards/jwt/jwt.guard.js';
 import { RolesGuard } from './auth/guards/roles/roles.guard.js';
 import { APP_GUARD } from '@nestjs/core';
+import { CsrfGuard } from './auth/guards/csrf/csrf.guard.js';
 
 
 @Module({
@@ -23,6 +24,7 @@ import { APP_GUARD } from '@nestjs/core';
   controllers: [AppController],
   providers: [AppService,
     {provide: APP_GUARD, useClass: JwtGuard},
+    {provide: APP_GUARD, useClass: CsrfGuard},
     {provide: APP_GUARD, useClass: RolesGuard}
   ],
 })

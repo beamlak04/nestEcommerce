@@ -2,6 +2,7 @@ export default () => ({
     app:{
         port: parseInt(process.env.PORT || '3000', 10),
         env: process.env.NODE_ENV || 'development',
+        clientUrl: process.env.CLIENT_URL,
     },
 
     database:{
@@ -16,5 +17,9 @@ export default () => ({
         refreshSecret: process.env.JWT_REFRESH_SECRET,
         accessTtl: process.env.JWT_ACCESS_TTL,
         refreshTtl: process.env.JWT_REFRESH_TTL,
+    },
+
+    csrf: {
+        secret: process.env.CSRF_SECRET,
     }
 })
