@@ -42,21 +42,21 @@ export class AuthController {
 
     @Public()
     @Post('register')
-    register(@Body() registerDto: RegisterDto){
-        return this.authService.register(registerDto.name, registerDto.phone, registerDto.password);
+    register(@Body() registerDto: RegisterDto, @Req() req){
+        return this.authService.register(registerDto.name, registerDto.phone, registerDto.password, req.ip);
         
     }
 
     @Public()
     @Post('verify')
-    verify(@Body() otpDto: OtpDto){
-        return this.authService.verify(otpDto.phone, otpDto.code);
+    verify(@Body() otpDto: OtpDto, @Req() req){
+        return this.authService.verify(otpDto.phone, otpDto.code, req.ip);
     }
 
     @Public()
     @Post('verify/resend')
-    async resendOtp(@Body("phone") phone: string){
-        return this.authService.resendOtp(phone);
+    async resendOtp(@Body("phone") phone: string, @Req() req){
+        return this.authService.resendOtp(phone, req.ip);
     }
 
     @Public()
@@ -90,8 +90,8 @@ export class AuthController {
 
     @Public()
     @Post('password/request')
-    requestReset(@Body("phone") phone: string){
-        return this.authService.requestPasswordReset(phone);
+    requestReset(@Body("phone") phone: string, @Req() req){
+        return this.authService.requestPasswordReset(phone, req.ip);
     }
 
     @Public()

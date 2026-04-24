@@ -1,18 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
-import {v4 as uuid} from 'uuid';
 import { hashToken } from '../utils/token.util.js';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
+import { AuditService } from '../../audit/audit.service.js';
+import { AUDIT_ACTION } from '../../generated/prisma/enums.js';
 
 @Injectable()
 export class SessionsService {
     constructor(
         private redisService:RedisService,
         private jwtService: JwtService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private auditService: AuditService
     ) {}
 
     async generateAccessToken(userId: string, role: string, sessionId: string){
@@ -63,7 +63,6 @@ export class SessionsService {
     }
 
     async createSession(userId: string, sessionId: string, refreshToken: string, ttl: number, metadata: {device: string, ip: string, userAgent: string}){
-        //ttl = 7d
         const data = {
             userId,
             refreshTokenHash: hashToken(refreshToken),
@@ -104,7 +103,14 @@ export class SessionsService {
         const hashedToken = hashToken(refreshToken);
         if(hashedToken !== session.refreshTokenHash) {
             await this.revokeUserSessions(session.userId);
-            throw new Error('Token reuse detected. All sessions revoked.');
+            await this.auditService.logEvent({
+                userId: session.userId,
+                action: AUDIT_ACTION.TOKEN_REUSE_DETECTED,
+                ip: session.ip,
+                device: session.device,
+                metadata: { userAgent: session.userAgent }
+            });
+            throw new UnauthorizedException('Refresh token validation failed.');
         }
         return session;
     }
@@ -131,7 +137,13 @@ export class SessionsService {
         const session = JSON.parse(sessionData);
         await this.redisService.srem(`user_sess:${session.userId}`, sessionId);
         await this.delSession(sessionId);
-        
+        await this.auditService.logEvent({
+            userId: session.userId,
+            action: AUDIT_ACTION.SESSION_REVOKED,
+            ip: session.ip,
+            device: session.device,
+            metadata: { userAgent: session.userAgent }
+        })
 
     }
 
@@ -154,7 +166,6 @@ export class SessionsService {
                 if(data.userId === userId){
                     sessions.push({
                         sessionId: key.replace('sess:', ''),
-                        //readable createdAt format
                         createdAt: new Date(data.createdAt).toLocaleString(),
                         device: data.device,
                         ip: data.ip,

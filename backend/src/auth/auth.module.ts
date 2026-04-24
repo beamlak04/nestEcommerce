@@ -8,11 +8,13 @@ import { RateLimitService } from './rate-limit/rate-limit.service.js';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsController } from './sessions/sessions.controller.js';
 import { CsrfService } from './csrf/csrf.service.js';
+import { AuditModule } from '../audit/audit.module.js';
+import { JwtGuard } from './guards/jwt/jwt.guard.js';
 
 @Module({
-  imports: [JwtModule.register({})],
-  providers: [AuthService, OtpService, SessionsService, SmsService, RateLimitService, CsrfService],
+  imports: [JwtModule.register({}), AuditModule],
+  providers: [AuthService, OtpService, SessionsService, SmsService, RateLimitService, CsrfService, JwtGuard],
   controllers: [AuthController, SessionsController],
-  exports: [AuthService, SessionsService, CsrfService]
+  exports: [AuthService, SessionsService, CsrfService, JwtGuard]
 })
 export class AuthModule {}

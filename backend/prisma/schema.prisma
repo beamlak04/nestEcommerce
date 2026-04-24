@@ -23,15 +23,35 @@ enum OtpType{
   RESET_PASSWORD
 }
 
+enum AUDIT_ACTION{
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_SUCCESS
+  PASSWORD_RESET_FAILED
+  TOKEN_REFRESH
+  TOKEN_REUSE_DETECTED
+  SESSION_REVOKED
+  ACCOUNT_LOCKED
+}
+
+enum Gender{
+  MALE
+  FEMALE
+}
+
 model User{
   id          String   @id @default(uuid())
   phone       String   @unique
   password    String
-  name        String
   role        Role      @default(CUSTOMER)
   isVerified  Boolean   @default(false)
-
-  sessions    Session[]
+  
+  firstName   String?
+  lastName    String?
+  dateOfBirth DateTime?
+  gender      Gender?
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -39,6 +59,9 @@ model User{
   @@index([role])
   @@index([isVerified])
 
+  auditLogs AuditLog[]
+  addresses Address[]
+  sessions  Session[]
 }
 
 model Session{
@@ -72,4 +95,42 @@ model Otp{
   @@index([expiresAt])
   @@index([phone, type])
   @@index([phone, code, type])
+}
+
+model AuditLog{
+  id         String    @id @default(uuid())
+  userId      String?
+  
+  action      AUDIT_ACTION
+  ipAddress   String
+  device      String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+}
+
+model Address{
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fullName    String
+  phone       String
+
+  region      String
+  city        String
+  subCity     String?
+  kebele       String?
+  houseNumber  String?
+  description String?
+
+  isDefault   Boolean   @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
 }

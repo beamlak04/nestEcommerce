@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {  Redis } from 'ioredis'
 
@@ -7,6 +7,7 @@ import {  Redis } from 'ioredis'
 export class RedisService {
     constructor(private config: ConfigService){}
     private redisClient: Redis;
+    private readonly logger = new Logger(RedisService.name);
     
     onModuleInit() {
         this.redisClient = new Redis({
@@ -18,31 +19,30 @@ export class RedisService {
         });
 
         this.redisClient.on('connect', () => {
-            console.log('Connected to Redis',
-                this.config.get<string>('redis.host'),
-                this.config.get<number>('redis.port'),
-            );
+            const host = this.config.get<string>('redis.host');
+            const port = this.config.get<number>('redis.port');
+            this.logger.log(`Connected to Redis ${host}:${port}`);
         });
 
         this.redisClient.on('ready', () => {
-            console.log('Redis client is ready');
+            this.logger.log('Redis client is ready.');
         });
 
-        this.redisClient.on('error', (err) => {
-            console.error('Redis connection error:', err);
+        this.redisClient.on('error', (error) => {
+            this.logger.error('Redis connection error.', error instanceof Error ? error.stack : undefined);
         });
 
         this.redisClient.on('close', () => {
-            console.log('Redis connection closed');
+            this.logger.warn('Redis connection closed.');
         });
     }
 
     async onModuleDestroy() {
         try {
             await this.redisClient.quit();
-            console.log('Disconnected from Redis');
-        } catch (err) {
-            console.error('Error disconnecting from Redis:', err);
+            this.logger.log('Disconnected from Redis.');
+        } catch (error: unknown) {
+            this.logger.error('Error disconnecting from Redis.', error instanceof Error ? error.stack : undefined);
         }
     }
 

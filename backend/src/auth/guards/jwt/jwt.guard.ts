@@ -1,6 +1,4 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import jwt from 'jsonwebtoken';
 import { SessionsService } from '../../../auth/sessions/sessions.service.js';
 import { Reflector } from '@nestjs/core';
 
@@ -17,23 +15,22 @@ export class JwtGuard implements CanActivate {
     if(isPublic) return true;
     const req = context.switchToHttp().getRequest();
     const header = req.headers.authorization;
-    if (!header) throw new UnauthorizedException('Missing authorization header');
+    if (!header) throw new UnauthorizedException('Authorization token is required.');
 
     const token = header.split(' ')[1];
-    if (!token) throw new UnauthorizedException('Invalid token no here');
+    if (!token) throw new UnauthorizedException('Invalid authorization token.');
 
     let payload: any;
     try {
       payload = await this.sessionsService.verifyAccessToken(token);
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token here', error.message);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired access token.');
     }
 
     const active = await this.sessionsService.getSession(payload.sid);
-    if(!active) throw new UnauthorizedException('Session revoked');
+    if(!active) throw new UnauthorizedException('Session is no longer active.');
 
     await this.sessionsService.updateSessionActivity(payload.sid);
-    //console.log(payload);
 
     req.user = payload;
     return true;

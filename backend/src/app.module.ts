@@ -11,6 +11,8 @@ import { JwtGuard } from './auth/guards/jwt/jwt.guard.js';
 import { RolesGuard } from './auth/guards/roles/roles.guard.js';
 import { APP_GUARD } from '@nestjs/core';
 import { CsrfGuard } from './auth/guards/csrf/csrf.guard.js';
+import { AuditModule } from './audit/audit.module.js';
+import { UsersModule } from './users/users.module.js';
 
 
 @Module({
@@ -20,7 +22,7 @@ import { CsrfGuard } from './auth/guards/csrf/csrf.guard.js';
       envFilePath: '.env',
       validationSchema: envValidationSchema,
       load:[appConfig]
-    }), PrismaModule, RedisModule, AuthModule],
+    }), PrismaModule, RedisModule, AuthModule, AuditModule, UsersModule],
   controllers: [AppController],
   providers: [AppService,
     {provide: APP_GUARD, useClass: JwtGuard},
